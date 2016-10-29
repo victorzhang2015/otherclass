@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.1//EN" "http://struts.apache.org/dtds/struts-2.1.dtd">
+<struts>
+	<constant name="struts.devMode" value="true"></constant>
+	<constant name="struts.i18n.encoding" value="GBK"></constant>
+	<package name="day01" namespace="/" extends="struts-default">
+		<action name="hello" class="action.HelloAction" method="sayHello">
+			<result name="success">/WEB-INF/success.jsp</result>
+		</action>
+		<action name="hello_world">
+			<result>/Hello.jsp</result>
+		</action>
+		<action name="path">
+			<result>/path.jsp</result>
+		</action>
+		<action name="student_*" class="action.Student" method="{1}">
+			<result name="success">/Success.jsp</result>
+			<result name="error">/Error.jsp</result>
+		</action>
+	
+		<action name="User_*" class="action.UserAction" method="{1}">
+			<result name="success">/Success.jsp</result>
+			<result name="error">/Error.jsp</result>
+		</action>
+		
+	</package>
+	
+	<package name="day02" namespace="/login" extends="struts-default">
+		<action name="LoginAction*" class="com.victor.action.LoginAction{1}">
+			<result name="success">/LoginSuccess.jsp</result>
+		</action>
+	</package>
+</struts>    

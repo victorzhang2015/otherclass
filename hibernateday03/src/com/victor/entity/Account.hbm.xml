@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+          "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+          "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+	<hibernate-mapping>
+		<class name="com.victor.entity.Account" table="ACCOUNT">
+			<id name="id" type="integer" column="id">
+				<generator class="identity"></generator>
+			</id>
+			<property name="recommenderId" type="integer" column="RECOMMENDER_ID"></property>
+			<property name="loginName" type="string" column="LOGIN_NAME"></property>
+			<property name="loginPassword" type="string" column="LOGIN_PASSWORD"></property>	
+			<property name="statue" type="string" column="STATUE"></property>
+			<property name="createDate" type="date" column="CREATE_DATE"></property>
+			<set name="services" lazy="false" fetch="join" cascade="all">
+				<!-- 用于指定关联条件，写关联条件的外键字段 -->
+				<key column="ACCOUNT_ID"></key>
+				<!-- 用于指定采用哪种关系，加载哪方数据 -->
+				<one-to-many class="com.victor.entity.Service"/>
+			</set>
+		</class>
+	</hibernate-mapping>        

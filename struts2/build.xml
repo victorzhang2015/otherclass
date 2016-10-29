@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="tar-uat" name="i2cash">
+    <property environment="env"/>
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.5"/>
+    <property name="source" value="1.5"/>
+    
+    <property name="RELEASE_DIR" value="./war" />
+	<property name="WEB_DIR" value="./WebRoot" />
+	<property name="EXTRA_FILES_SIT" value="./deployment/sit" />
+	<property name="EXTRA_FILES_UAT" value="./deployment/uat" />
+	<property name="EXTRA_FILES_PRO" value="./deployment/pro" />
+	<!--<property name="EXTRA_FILES_PROD" value="./deployment/pro" />-->
+	<property name="TEMP_DIR" value="./temp/i2cash" />
+	<property name="TEMP_WEB_INF" value="${TEMP_DIR}/WEB-INF" />
+	<property name="TEMP_APP_LIB" value="${TEMP_WEB_INF}/lib" />
+	<property name="COMM_LIB" value="../ebank_i2lib/lib" />
+	<property name="CORE_DIR" value="../ebank_i2core" />
+	<property name="I2CASH_DIR" value="${WEB_DIR}/WEB-INF/classes" />
+
+    <path id="i2lib.classpath">
+    	<fileset dir="${COMM_LIB}">
+          <include name="**/*.jar"/>
+        </fileset>
+    </path>
+    <path id="i2cash.classpath">
+    	<fileset dir="${WEB_DIR}/WEB-INF/classes"></fileset>
+    </path>
+	
+	<target name="clean">
+        <delete dir="${WEB_DIR}/WEB-INF/classes"/>
+    </target>
+    
+    <target name="init" depends="clean">
+    	<tstamp>
+			<format property="TODAY" pattern="yyyyMMdd-HHmmss" locale="cn" />
+		</tstamp>
+        <mkdir dir="${WEB_DIR}/WEB-INF/classes"/>
+        <copy includeemptydirs="false" todir="${WEB_DIR}/WEB-INF/classes">
+            <fileset dir="src" excludes="**/*.launch, **/*.java"/>
+            <fileset dir="configsrc" excludes="**/*.launch, **/*.java"/>
+            <fileset dir="opconfigsrc" excludes="**/*.launch, **/*.java"/>
+            <fileset dir="configprop" excludes="**/*.launch, **/*.java"/>
+        </copy>
+    </target>
+	
+    <target name="compile" depends="init">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="${WEB_DIR}/WEB-INF/classes" encoding="UTF-8" source="${source}" target="${target}">
+            <src path="${CORE_DIR}/src"/>
+            <classpath refid="i2lib.classpath"/>
+        </javac>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="${WEB_DIR}/WEB-INF/classes" encoding="UTF-8" source="${source}" target="${target}">
+            <src path="src"/>
+            <classpath refid="i2lib.classpath"/>
+            <classpath refid="i2cash.classpath"/>
+        </javac>
+    </target>
+	
+	<target name="prepare" depends="compile">
+		<delete dir="${TEMP_DIR}" />
+		<mkdir dir="${TEMP_DIR}" />
+		<copy todir="${TEMP_DIR}" overwrite="true">
+			<fileset dir="${WEB_DIR}">
+				<include name="**/*.*" />
+				<exclude name="**/servlet-api.jar" />
+				<exclude name="**/jasper-runtime.jar" />
+				<exclude name="**/jasper-compiler.jar" />
+				<exclude name="**/jsp-api.jar" />
+			</fileset>
+		</copy>
+		<copy todir="${TEMP_DIR}/WEB-INF/lib" overwrite="true">
+			<fileset dir="${COMM_LIB}">
+				<include name="**/*.*" />
+			</fileset>
+		</copy>
+	</target>
+	
+	<target name="war-sit" depends="prepare">
+		<copy todir="${TEMP_DIR}" overwrite="true">
+			<fileset dir="${EXTRA_FILES_SIT}">
+				<include name="**/*.*" />
+			</fileset>
+		</copy>
+		<war destfile="${RELEASE_DIR}/i2cash_sit_${TODAY}.war" webxml="${TEMP_WEB_INF}/web.xml" duplicate="preserve">
+			<fileset dir="${TEMP_DIR}">
+				<include name="**/*" />
+			</fileset>
+		</war>
+		<delete dir="${TEMP_DIR}" />
+	</target>
+	
+	<target name="tar-sit" depends="war-sit">
+		<mkdir dir="${TEMP_DIR}"></mkdir>
+		<copy todir="${TEMP_DIR}" overwrite="true">
+			<fileset dir="${RELEASE_DIR}">
+				<include name="i2cash_sit_${TODAY}.war" />
+			</fileset>
+		</copy>
+		<tar destfile="${RELEASE_DIR}/i2cash_sit_${TODAY}.tar" basedir="${TEMP_DIR}"/>
+		<delete dir="${TEMP_DIR}" />
+		
+		<!--将tar包上传到服务器 -->
+		<!--<ftp server="192.168.242.22" userid="wcms"  password="wcms110" remotedir="/DEVWCMS/WAS" >
+			<fileset  file="${RELEASE_DIR}/cms_sit_${TODAY}.tar"/>
+		</ftp>-->
+		
+		<!-- 解压/DEVWCMS/WAS文件夹下的tar包，并且将此文件夹下的tar包复制到/DEVWCMS/WEB/文件夹下，然后在解压WEB下的tar包-->
+		<!--<telnet server="192.168.242.22" userid="wcms" password="wcms110" timeout="1000">
+			<read>wcms@</read>
+			<write>cd /DEVWCMS/WAS</write>
+			<read>wcms@</read>
+			<write>tar -xvf  cms_sit_${TODAY}.tar</write>
+			<read>wcms@</read>
+			<write>cp cms_sit_${TODAY}.tar /DEV*/WEB/</write>
+			<read>wcms@</read>
+			<write>cd /DEVWCMS/WEB/</write>
+			<read>wcms@</read>
+			<write echo="false">sleep 1</write>
+			<read>wcms@</read>
+			<write>tar -xvf  cms_sit_${TODAY}.tar</write>
+			<read>wcms@</read>
+			<write echo="false">sleep 1</write>
+		</telnet>-->
+	</target>
+	
+	<target name="war-uat" depends="prepare">
+		<copy todir="${TEMP_DIR}" overwrite="true">
+			<fileset dir="${EXTRA_FILES_UAT}">
+				<include name="**/*.*" />
+			</fileset>
+		</copy>
+		<war destfile="${RELEASE_DIR}/i2cash_uat_${TODAY}.war" webxml="${TEMP_WEB_INF}/web.xml" duplicate="preserve">
+			<fileset dir="${TEMP_DIR}">
+				<include name="**/*" />
+			</fileset>
+		</war>
+		<delete dir="${TEMP_DIR}" />
+	</target>
+	
+	<!--<target name="war-pro" depends="prepare">
+		<copy todir="${TEMP_DIR}" overwrite="true">
+			<fileset dir="${EXTRA_FILES_PRO}">
+				<include name="**/*.*" />
+			</fileset>
+		</copy>
+		<war destfile="${RELEASE_DIR}/i2cash_pro_${TODAY}.war" webxml="${TEMP_WEB_INF}/web.xml" duplicate="preserve">
+			<fileset dir="${TEMP_DIR}">
+				<include name="**/*" />
+			</fileset>
+		</war>
+		<delete dir="${TEMP_DIR}" />
+	</target>-->
+	
+	<target name="tar-uat" depends="war-uat">
+		<mkdir dir="${TEMP_DIR}"></mkdir>
+		<copy todir="${TEMP_DIR}" overwrite="true">
+			<fileset dir="${RELEASE_DIR}">
+				<include name="i2cash_uat_${TODAY}.war" />
+			</fileset>
+		</copy>
+		<tar destfile="${RELEASE_DIR}/i2cash_uat_${TODAY}.tar" basedir="${TEMP_DIR}"/>
+		<delete dir="${TEMP_DIR}" />
+		
+	</target>
+	
+	<target name="war-pro" depends="prepare">
+		<copy todir="${TEMP_DIR}" overwrite="true">
+			<fileset dir="${EXTRA_FILES_PRO}">
+				<include name="**/*.*" />
+			</fileset>
+		</copy>
+		<war destfile="${RELEASE_DIR}/i2cash_pro_${TODAY}.war" webxml="${TEMP_WEB_INF}/web.xml" duplicate="preserve">
+			<fileset dir="${TEMP_DIR}">
+				<include name="**/*" />
+			</fileset>
+		</war>
+		<delete dir="${TEMP_DIR}" />
+	</target>
+	
+	<target name="tar-pro" depends="war-pro">
+		<mkdir dir="${TEMP_DIR}"></mkdir>
+		<copy todir="${TEMP_DIR}" overwrite="true">
+			<fileset dir="${RELEASE_DIR}">
+				<include name="i2cash_pro_${TODAY}.war" />
+			</fileset>
+		</copy>
+		<tar destfile="${RELEASE_DIR}/i2cash_pro_${TODAY}.tar" basedir="${TEMP_DIR}"/>
+		<delete dir="${TEMP_DIR}" />
+	</target>
+	
+	<!-- 关闭和启动dcms -->
+	<!--<target name="operation_dcms" >
+		<telnet server="192.168.242.22" userid="jeus" password="jeus110" timeout="1000">
+			<read>jeus@</read>
+			<write>downcon dcms</write>
+			<read>jeus@</read>
+			<write echo="false">sleep 1</write>
+			<read>jeus@</read>
+			<write>startcon dcms</write>
+			<read>jeus@</read>
+			<write echo="false">sleep 1</write>
+		</telnet>
+	</target>-->
+	
+	<!--<target name="operation_tcms" >
+		<telnet server="192.168.242.22" userid="jeus" password="jeus110" timeout="1000">
+			<read>jeus@</read>
+			<write>downcon tcms</write>
+			<read>jeus@</read>
+			<write echo="false">sleep 1</write>
+			<read>jeus@</read>
+			<write>startcon tcms</write>
+			<read>jeus@</read>
+			<write echo="false">sleep 1</write>
+		</telnet>
+	</target>-->
+		
+	<!--关闭和启动dcem -->
+	<!--<target name="operation_dcem">
+		<telnet server="192.168.242.22" userid="jeus" password="jeus110" timeout="1000">
+			<read>jeus@</read>
+			<write>downcon dcem</write>
+			<read>jeus@</read>
+			<write echo="false">sleep 1</write>
+			<read>jeus@</read>
+			<write>startcon dcem</write>
+			<read>jeus@</read>
+			<write echo="false">sleep 1</write>
+		</telnet>
+	</target>
+	
+	<target name="operation_tcem" >
+		<telnet server="192.168.242.22" userid="jeus" password="jeus110" timeout="1000">
+			<read>jeus@</read>
+			<write>downcon tcem</write>
+			<read>jeus@</read>
+			<write echo="false">sleep 1</write>
+			<read>jeus@</read>
+			<write>startcon tcem</write>
+			<read>jeus@</read>
+			<write echo="false">sleep 1</write>
+		</telnet>
+	</target>-->
+	
+	
+	
+	<!-- 关闭和启动dagent -->
+	<!--<target name="operation_dagent" >
+		<telnet server="192.168.242.22" userid="jeus" password="jeus110" timeout="1000">
+			<read>jeus@</read>
+			<write>downcon dagent</write>
+			<read>jeus@</read>
+			<write echo="false">sleep 1</write>
+			<read>jeus@</read>
+			<write>startcon dagent</write>
+			<read>jeus@</read>
+			<write echo="false">sleep 1</write>
+		</telnet>
+	</target>
+	
+	<target name="operation_tagent" >
+			<telnet server="192.168.242.22" userid="jeus" password="jeus110" timeout="1000">
+				<read>jeus@</read>
+				<write>downcon tagent</write>
+				<read>jeus@</read>
+				<write echo="false">sleep 1</write>
+				<read>jeus@</read>
+				<write>startcon tagent</write>
+				<read>jeus@</read>
+				<write echo="false">sleep 1</write>
+			</telnet>
+		</target>-->
+	
+	<!--关闭和启动整个jeus -->
+	<!--<target name="operation_all" >
+		<telnet server="192.168.242.22" userid="jeus" password="jeus110" timeout="1000">
+			<read>jeus@</read>
+			<write>jdown</write>
+			<read>jeus@</read>
+			<write echo="false">sleep 1</write>
+			<read>jeus@</read>
+			<write>jboot</write>
+			<read>jeus@</read>
+			<write echo="false">sleep 1</write>
+		</telnet>
+	</target>-->
+</project>

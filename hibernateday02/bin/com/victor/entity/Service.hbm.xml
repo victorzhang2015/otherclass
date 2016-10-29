@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+          "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+          "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+	<hibernate-mapping>
+		<class name="com.victor.entity.Service" table="SERVICE">
+			<id name="id" type="integer" column="id">
+				<generator class="identity"></generator>
+			</id>
+			<!-- <property name="accountId" type="integer" column="ACCOUNT_ID"></property> -->
+			<many-to-one name="Account" column="ACCOUNT_ID" class="com.victor.entity.Account"/>
+			<property name="unixHost" type="string" column="UNIX_HOST"></property>
+			<property name="osUserName" type="string" column="OS_USERNAME"></property>
+			<property name="loginPassword" type="string" column="LOGIN_PASSWORD"></property>	
+			<property name="statue" type="string" column="STATUE"></property>
+			<property name="createDate" type="date" column="CREATE_DATE"></property>
+		</class>
+	</hibernate-mapping>        
